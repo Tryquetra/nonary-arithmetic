@@ -1,0 +1,286 @@
+---
+title: "Decimal-Ternary and Ternary-Binary Conversion with the p to p±1 Translation Algorithm: Nonary and Octal Bridges as Optional Reductions"
+author: "Robson Cassiano"
+affiliation: "Department of Computer Science, Tryquetra"
+date: "2025-11-09"
+modified: "2026-10-25"
+lang: en
+keywords:
+  - balanced ternary
+  - nonary arithmetic
+  - base conversion
+  - adjacent-base translation
+  - Setun
+  - ternary computing
+canonical: https://tryquetra.github.io/nonary-arithmetic/
+---
+
+# Decimal-Ternary and Ternary-Binary Conversion with the $p \to p \pm 1$ Translation Algorithm: Nonary and Octal Bridges as Optional Reductions
+
+Robson Cassiano
+
+Department of Computer Science, Tryquetra
+
+First published: November 9, 2025. Revised: October 25, 2026.
+
+## Abstract
+
+The $p \to p \pm 1$ algorithm converts a number between adjacent bases using one addition or subtraction and one comparison per digit. Each pass over the number yields one digit of the result, so a full conversion takes one pass per output digit and its total cost grows quadratically with the number of digits. Because 3 and 2 are adjacent, ternary and binary convert directly in both directions; because 10 and 3 are not, decimal to ternary needs an intermediate base. This paper shows that the practical value of the algorithm lies in the choice of such a base: one adjacent to the source base and a power of the target base. For decimal to ternary conversion, the nonary base ($9 = 3^2$, adjacent to 10) halves the number of digit operations. For ternary and binary conversion, the consecutive powers $8 = 2^3$ and $9 = 3^2$ provide an optional octal and nonary bridge that reduces digit operations by a factor of six relative to the direct route (a factor of three for ternary to binary and two for binary to ternary when each step is weighted by the width of its digits). We state the algorithm with both signs explicit, give a cost model, report counts measured with a reference implementation, and describe the conversion to balanced ternary as a single linear pass over nonary digits.
+
+**Keywords:** balanced ternary, nonary arithmetic, base conversion, adjacent-base translation, Setun, ternary computing
+
+## 1. Introduction
+
+Ternary computing, particularly balanced ternary with digits $\{-1, 0, 1\}$, offers theoretical advantages in storage efficiency and logical complexity. Its practical adoption, exemplified by the Setun computer, faces two interoperability problems:
+
+1. **Human interface (I/O).** Data must be converted to and from decimal (base 10), the base of human interaction.
+2. **Machine interoperability.** Data must be exchanged with binary (base 2) architectures.
+
+Converting directly between bases such as $10 \leftrightarrow 3$ or $3 \leftrightarrow 2$ requires repeated division by a small number. The $p \to p \pm 1$ translation algorithm [1] performs each of these divisions with very simple digit operations when the two bases are adjacent. This paper makes the following contributions:
+
+1. An explicit statement of the algorithm with both signs and a bound on every intermediate value (Section 2).
+2. A cost model that separates the quadratic growth of the conversion from the cost of a single step (Section 3).
+3. A bridge principle that quantifies the gain from an intermediate base (Section 4).
+4. Application to decimal I/O through the nonary base (Section 5).
+5. Application to binary interoperability: direct adjacent conversion between 3 and 2, with the octal and nonary bases as an optional reduction that exploits 8 and 9 being consecutive powers (Section 6).
+6. A linear-time conversion from nonary to balanced ternary (Section 7).
+7. Measured operation counts, a benchmark script, and a reference implementation (Section 8 and Appendix A).
+
+## 2. The $p \to p \pm 1$ Translation Algorithm
+
+### 2.1. Statement
+
+Let $N = (a_n \dots a_0)_p$ be a number in base $p$ and let $q = p + \sigma$ with $\sigma \in \{-1, +1\}$ and $q \ge 2$. Starting from $c_{n+1} = 0$ and moving from the most significant digit to the least significant one ($i = n, n-1, \dots, 0$), compute
+
+$$v_i = a_i - \sigma\, c_{i+1}, \qquad c_i = v_i \bmod q, \qquad b_i = c_{i+1} + \left\lfloor \frac{v_i}{q} \right\rfloor$$
+
+where $\bmod$ returns a value in $\{0, \dots, q-1\}$ and $\lfloor \cdot \rfloor$ is floor division. Then $(b_n \dots b_0)_p$ is the quotient and $c_0$ is the remainder of the division of $N$ by $q$, so $N = q \cdot (b_n \dots b_0)_p + c_0$.
+
+The two signs give two concrete cases:
+
+| Case | Base $q$ | $\sigma$ | $v_i$ | Range of $v_i$ | Correction |
+| --- | --- | --- | --- | --- | --- |
+| $p \to p-1$ | $p-1$ | $-1$ | $a_i + c_{i+1}$ | $0 \le v_i \le 2q-1$ | if $v_i \ge q$: subtract $q$, add 1 to $b_i$ |
+| $p \to p+1$ | $p+1$ | $+1$ | $a_i - c_{i+1}$ | $-p \le v_i \le p-1$ | if $v_i < 0$: add $q$, subtract 1 from $b_i$ |
+
+In both cases $\lfloor v_i / q \rfloor$ takes only two values, so a step consists of one addition or subtraction, one comparison, and one conditional correction. Every quotient digit satisfies $0 \le b_i \le p-1$, so the quotient is a valid base-$p$ numeral.
+
+### 2.2. Derivation
+
+Write $p = q - \sigma$. The partial value at step $i$ is
+
+$$V_i = c_{i+1}\, p + a_i = c_{i+1}\, q + \left(a_i - \sigma\, c_{i+1}\right) = c_{i+1}\, q + v_i .$$
+
+Dividing $v_i$ by $q$ gives $V_i = \left(c_{i+1} + \lfloor v_i / q \rfloor\right) q + (v_i \bmod q)$, which yields the formulas for $b_i$ and $c_i$. The multiple of $q$ is absorbed into the quotient digit and only the small value $v_i$ is reduced, so no multiplication by $p$ and no multi-digit arithmetic is needed.
+
+### 2.3. Conversion by repeated passes
+
+Applying the algorithm repeatedly to the successive quotients produces the digits of $N$ in base $q$, least significant first: the remainder of each pass is the next output digit. The process ends when the quotient is zero.
+
+**Example.** One pass on $1234_{10}$ with $q = 9$ ($\sigma = -1$):
+
+| $a_i$ | $c_{i+1}$ | $v_i$ | $c_i$ | $b_i$ |
+| --- | --- | --- | --- | --- |
+| 1 | 0 | 1 | 1 | 0 |
+| 2 | 1 | 3 | 3 | 1 |
+| 3 | 3 | 6 | 6 | 3 |
+| 4 | 6 | 10 | 1 | 7 |
+
+The quotient is $0137 = 137$ and the remainder is 1. The complete conversion:
+
+| Pass | Dividend (base 10) | Quotient | Remainder |
+| --- | --- | --- | --- |
+| 0 | 1234 | 137 | 1 |
+| 1 | 137 | 15 | 2 |
+| 2 | 15 | 1 | 6 |
+| 3 | 1 | 0 | 1 |
+
+Reading the remainders from the last pass to the first gives $1234_{10} = 1621_9$.
+
+## 3. Cost Model
+
+Define a **digit-step** as the processing of one digit inside a pass. A pass over $m$ digits costs $m$ digit-steps. Converting an $n$-digit number from base $p$ to base $q$ takes about $L = n \ln p / \ln q$ passes, and the length of the dividend shrinks roughly linearly from $n$ to 0, so the total is
+
+$$T \approx \frac{n \cdot L}{2} = \frac{n^2}{2} \cdot \frac{\ln p}{\ln q}.$$
+
+Two consequences follow.
+
+- The total cost is quadratic in $n$ for any choice of adjacent or non-adjacent bases. Subquadratic conversions based on divide and conquer with fast multiplication exist for very large numbers. The algorithm in this paper targets word-sized data, simple hardware, and I/O routines where only addition and comparison are available.
+- The contribution of the adjacent-base algorithm is the cost of one step. Generic short division from base $p$ to base $q$ also costs one step per digit, but each step multiplies the running remainder by $p$ and divides by $q$, which needs a divider or a lookup table. The adjacent-base step needs only an addition and a comparison.
+
+Reducing the number of digit-steps further requires reducing the number of passes or the length of the strings, and this is what the bridge principle of the next section does.
+
+## 4. The Bridge Principle
+
+Let a number have $n$ digits in a source base $s$, and let $t$ be the target base. Suppose there are bases $A$ and $B$ such that
+
+1. $A = s^j$ for some $j \ge 1$, so that $A$-digits are obtained by grouping $j$ source digits;
+2. $B = t^k$ for some $k \ge 1$, so that each $B$-digit splits into $k$ target digits;
+3. $|A - B| = 1$, so that the adjacent-base algorithm converts from $A$ to $B$.
+
+Grouping and splitting are linear-time digit mappings. The conversion then proceeds as $s \to A$ (grouping), $A \to B$ (adjacent-base passes), $B \to t$ (splitting).
+
+**Gain.** The direct route needs about $n \ln s / \ln t$ passes over strings of length $n$. The bridge route needs about $n \ln s / \ln B = (n \ln s / \ln t)/k$ passes, since the passes produce $B$-digits, and each pass runs over strings of length $n/j$. The number of passes falls by a factor $k$, the string length falls by a factor $j$, and the number of digit-steps falls by a factor
+
+$$G = j \cdot k .$$
+
+An $A$-digit carries $j$ source digits, so weighting each step by its width divides the bridge cost by $j$ and leaves a width-weighted gain of $k$. Section 8 reports both quantities.
+
+**Consecutive powers.** A bridge needs two adjacent bases, one a power of the source and one a power of the target. Catalan's conjecture, proved by Mihăilescu [4], states that $3^2 - 2^3 = 1$ is the only case of two consecutive perfect powers with exponents greater than one. The pair $(9, 8)$ is therefore the unique bridge of this type that connects binary and ternary, and it works in both directions. When source and target are already adjacent, as 3 and 2 are, no bridge is required; the bridge then serves only to reduce digit-steps, at the cost of one linear grouping and one linear splitting pass.
+
+## 5. Decimal and Ternary through the Nonary Bridge
+
+### 5.1. Input: decimal to ternary
+
+With $s = 10$, take $A = 10$ ($j = 1$) and $B = 9 = 3^2$ ($k = 2$), which are adjacent. The gain is $G = 2$.
+
+1. **Decimal to nonary** ($p \to p-1$, $p = 10$, $q = 9$). Example: $1234_{10} \to 1621_9$ (Section 2.3).
+2. **Nonary to standard ternary** (each digit maps to two trits). $1621_9 \to (01)(20)(02)(01)_3 = 1200201_3$.
+3. **Standard to balanced ternary** by a linear pass (Section 7).
+
+### 5.2. Output: ternary to decimal
+
+With $s = 3$, take $A = 9 = 3^2$ ($j = 2$) and $B = 10$ ($k = 1$). The gain is $G = 2$, and the width-weighted gain is 1: the number of passes equals the number of decimal digits in both routes, and the saving comes from strings that are half as long and from the simpler step.
+
+1. **Balanced to standard ternary** by a linear pass.
+2. **Standard ternary to nonary** (trits grouped in pairs from the right). $1200201_3 \to 1621_9$.
+3. **Nonary to decimal** ($p \to p+1$, $p = 9$, $q = 10$, $\sigma = +1$). Example for $1621_9$:
+
+| Pass | Dividend (base 9) | Quotient (base 9) | Remainder |
+| --- | --- | --- | --- |
+| 0 | 1621 | 146 | 4 |
+| 1 | 146 | 13 | 3 |
+| 2 | 13 | 1 | 2 |
+| 3 | 1 | 0 | 1 |
+
+The remainders, read from the last pass to the first, give $1234_{10}$.
+
+## 6. Binary Interoperability
+
+### 6.1. Ternary to binary
+
+Bases 3 and 2 are adjacent ($|3 - 2| = 1$), so the $p \to p-1$ algorithm converts ternary directly to binary with no intermediate base. Example: $1200201_3 \to 10011010010_2$, which equals $1234_{10}$.
+
+A bridge can reduce the number of digit-steps at the cost of extra mapping. With $A = 9 = 3^2$ ($j = 2$) and $B = 8 = 2^3$ ($k = 3$), the gain is $G = 6$ in digit-steps and $k = 3$ when weighted by width:
+
+1. Group the trits in pairs to obtain nonary digits.
+2. Convert nonary to octal with the $p \to p-1$ algorithm ($p = 9$, $q = 8$).
+3. Replace each octal digit by three bits.
+
+Example: $1200201_3 \to 1621_9 \to 2322_8 \to 10011010010_2$.
+
+The adjacent pair $(3, 4)$ with $4 = 2^2$ is another option: the $p \to p+1$ algorithm converts directly from base 3 to base 4 and each quaternary digit splits into two bits. Here $j = 1$ and $k = 2$, so $G = 2$.
+
+### 6.2. Binary to ternary
+
+Bases 2 and 3 are also adjacent, so the $p \to p+1$ algorithm converts binary directly to ternary. Example: $10011010010_2 \to 1200201_3$. A bridge through octal and nonary reduces digit-steps by $G = 6$ (width-weighted $k = 2$):
+
+1. Group the bits in threes to obtain octal digits.
+2. Convert octal to nonary with the $p \to p+1$ algorithm ($p = 8$, $q = 9$).
+3. Replace each nonary digit by two trits.
+
+Example: $10011010010_2 \to 2322_8 \to 1621_9 \to 01200201_3$.
+
+## 7. Balanced Ternary
+
+The balanced ternary digits are $\{-1, 0, +1\}$. A balanced nonary digit $d \in \{-4, \dots, 4\}$ corresponds to exactly one pair of balanced trits $(a, b)$ with $d = 3a + b$, and the mapping is a bijection on all nine values:
+
+| $d$ | $(a, b)$ | $d$ | $(a, b)$ |
+| --- | --- | --- | --- |
+| -4 | (-1, -1) | 1 | (0, 1) |
+| -3 | (-1, 0) | 2 | (1, -1) |
+| -2 | (-1, 1) | 3 | (1, 0) |
+| -1 | (0, -1) | 4 | (1, 1) |
+| 0 | (0, 0) |  |  |
+
+Converting a standard nonary numeral (digits $0$ to $8$) to balanced nonary takes one linear pass from the least significant digit: add the incoming carry to the digit, and if the result exceeds 4, subtract 9 and carry 1 into the next digit. A final carry becomes a leading 1. The balanced nonary numeral then maps to balanced trits two at a time, with no carries between pairs.
+
+Example: $1621_9$ becomes the balanced nonary digits $(2, -3, 2, 1)$, which map to the pairs $(1,-1)(-1,0)(1,-1)(0,1)$ and give the balanced ternary numeral $(1, -1, -1, 0, 1, -1, 0, 1)$. Check: $3^7 - 3^6 - 3^5 + 3^3 - 3^2 + 1 = 1234$.
+
+This replaces the "fast internal CPU algorithm" of the first version of this paper with an explicit linear procedure whose cost is negligible next to the quadratic division passes.
+
+## 8. Measured Results
+
+A reference implementation (Appendix A) was used to verify the algorithm and to count passes and digit-steps. The adjacent-base conversion was checked against generic short division and against exact integer arithmetic on random numbers of up to 200 digits, for every pair of bases in $2 \dots 36$ that differs by one, in both directions. All bridge routes below were checked to reproduce the same value as the direct route.
+
+Counts for random inputs with $n = 1000$ source digits (decimal digits for the routes from base 10, trits for the routes from base 3, bits for $2 \to 3$). The rows are split by the role the bridge plays. Where source and target are not adjacent, the bridge is what makes the adjacent-base algorithm applicable at all, and the direct column is generic short division. Where they are adjacent, the direct column is already the adjacent-base conversion and the bridge is an optional reduction.
+
+### 8.1. Bridges that are required
+
+Source and target are not adjacent, so the direct column is generic short division.
+
+| Route | Bridge | Passes direct | Passes bridge | Pass ratio | Steps direct | Steps bridge | Step ratio | Width-weighted gain |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| $10 \to 3$ | 9 | 2096 | 1048 | 2.00 | 1,048,826 | 524,663 | 2.00 | 2 |
+| $3 \to 10$ | 9 | 478 | 478 | 1.00 | 239,146 | 119,693 | 2.00 | 1 |
+
+### 8.2. Bridges that are optional
+
+Source and target are adjacent, so the direct column is already the adjacent-base conversion. The bridge trades one linear grouping pass and one linear splitting pass for fewer digit-steps.
+
+| Route | Bridge | Passes direct | Passes bridge | Pass ratio | Steps direct | Steps bridge | Step ratio | Width-weighted gain |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| $3 \to 2$ | 9 and 8 | 1585 | 529 | 3.00 | 793,265 | 132,510 | 5.99 | 3 |
+| $3 \to 2$ | 4 | 1585 | 793 | 2.00 | 793,265 | 396,882 | 2.00 | 2 |
+| $2 \to 3$ | 8 and 9 | 631 | 316 | 2.00 | 315,945 | 52,846 | 5.98 | 2 |
+
+The two optional routes through 9 and 8 differ in which direction they group and split: $3 \to 2$ groups trits in pairs and splits octal digits into three bits, while $2 \to 3$ groups bits in threes and splits nonary digits into two trits. Both reduce digit-steps by close to six, and both pay two linear passes that the table does not count.
+
+The measured ratios match the gain $G = jk$ of Section 4 for every route. The cost model of Section 3 predicts $n L / 2 = 1000 \cdot 2096 / 2 = 1{,}047{,}952$ digit-steps for the direct $10 \to 3$ route, against 1,048,826 measured. Runs with $n = 100$ and $n = 3000$ keep the same ratios: the $10 \to 3$ pass ratio is $2.00$ at both sizes and the step ratio is $1.99$ and $2.00$. All counts are produced by the bundled benchmark script `benchmark/generate_benchmark.py`, which is deterministic and requires only the Python standard library.
+
+The counts measure digit operations. Wall-clock time and hardware cost depend on the implementation and are not part of this study.
+
+An interactive demonstration implementing the same adjacent-base conversion, with a step-by-step visualization of each pass, is available as a web application [5]. It uses the same algorithm as the reference implementation above.
+
+## 9. Context and Limitations
+
+**Historical context.** The Setun, a balanced ternary computer, was developed at Moscow State University in 1958, and its successor Setun-70 ran in 1970 [2]. The $p \to p \pm 1$ algorithms were published in 1970 in a Moscow State University series [1], so they belong to the same technical environment. Whether they were used in the input and output routines of the Setun machines is a question this paper leaves open.
+
+**Limitations.**
+
+- The conversion cost remains quadratic. The bridge gains are constant factors.
+- The bridge requires two adjacent bases with the power structure of Section 4. Other pairs can be reached by chaining adjacent-base conversions, and each stage of a chain costs a full conversion.
+- The paper treats non-negative integers. Signs and fractional parts need separate handling.
+- The results are digit-operation counts. A study of execution time or circuit cost is future work.
+
+**Possible application.** Recent work on a binary-compatible balanced ternary instruction set [3] requires radix conversion between 32-bit binary words and ternary registers. The $(8, 9)$ bridge of Section 6 is a candidate structure for studying fixed-width conversion circuits. This paper does not evaluate hardware cost.
+
+## 10. Conclusion
+
+The $p \to p \pm 1$ algorithm converts between adjacent bases with a step that needs only addition and comparison. Its total cost grows quadratically, and the choice of a bridge base determines the constant. Ternary and binary are adjacent, so they convert directly; decimal and ternary are not, so the nonary base is what makes that route cheap. A bridge base that is adjacent to the source and a power of the target reduces the number of digit-steps by a factor $G = jk$ relative to the direct route. For decimal and ternary, the nonary base gives $G = 2$ in both directions. For ternary and binary, the consecutive powers 8 and 9 give $G = 6$ in digit-steps (3 and 2 when weighted by digit width), and the pair $(3, 4)$ gives $G = 2$. Balanced ternary output follows from a linear pass over nonary digits. The counts in Section 8 confirm these factors on random inputs of up to 3000 digits.
+
+## References
+
+1. Alvarez H., R. (1970). _Simple algorithms for p→p-1 and p→p+1 translations_. In: Computer Science and Cybernetics, issue 7. Moscow State University Press.
+2. Brusentsov, N. P., & Alvarez, J. R. (2011). Ternary computers: The Setun and the Setun 70. In _Perspectives on Soviet and Russian Computing_, IFIP AICT 357, Springer, pp. 74-80.
+3. Bos, S., Bodahl, V., Moholth, O. C., & Gundersen, H. (2025). REBEL-6: A 32-trit balanced ternary instruction set architecture with R2R compiler pipeline for C. In _2025 IEEE 55th International Symposium on Multiple-Valued Logic (ISMVL)_, pp. 98-103. https://doi.org/10.1109/ISMVL64713.2025.00028
+4. Mihăilescu, P. (2004). Primary cyclotomic units and a proof of Catalan's conjecture. _Journal für die reine und angewandte Mathematik_, 572, 167-195.
+5. Cassiano, R. (2025). Nonary arithmetic: base converter (interactive PWA). GitHub: https://github.com/Tryquetra/nonary-ternary-bridge-base-converter. Live demo: https://tryquetra.github.io/nonary-ternary-bridge-base-converter/
+
+## Appendix A. Reference Implementation (Python)
+
+The adjacent-base pass and the repeated-pass conversion, verified against generic short division and exact integer arithmetic for every pair of adjacent bases in $2 \dots 36$.
+
+```
+def adjacent_pass(a, p, q):
+    """Divide base-p digits a (most significant first) by q = p - 1 or p + 1."""
+    sigma = q - p                       # -1 or +1
+    c, quotient = 0, []
+    for d in a:
+        v = d - sigma * c               # one addition or subtraction
+        quotient.append(c + v // q)     # v // q is 0 or 1 (q = p - 1), 0 or -1 (q = p + 1)
+        c = v % q
+    i = next((k for k, x in enumerate(quotient) if x), len(quotient))
+    return quotient[i:], c              # leading zeros removed
+
+def convert(a, p, q):
+    """Repeated passes; returns the digits of the number in base q, most significant first."""
+    out = []
+    while a:
+        a, r = adjacent_pass(a, p, q)
+        out.append(r)
+    return out[::-1] or [0]
+
+print(convert([1, 2, 3, 4], 10, 9))     # [1, 6, 2, 1]
+print(convert([1, 6, 2, 1], 9, 10))     # [1, 2, 3, 4]
+```

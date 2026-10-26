@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tryquetra.github.io/nonary-arithmetic/sitemap.xml

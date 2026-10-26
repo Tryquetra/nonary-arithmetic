@@ -1,0 +1,28 @@
+# Nonary Arithmetic — Tryquetra
+
+> A preprint on the p to p±1 translation algorithm for base conversion. A bridge
+> base adjacent to the source and a power of the target cuts digit-steps by
+> G = j·k. Reproducible benchmark included.
+
+## Article
+
+- [Decimal-Ternary and Ternary-Binary Conversion with the p to p±1 Translation Algorithm](https://tryquetra.github.io/nonary-arithmetic/): full paper, 10 sections, 7 tables, Python reference implementation in Appendix A. Author: Robson Cassiano. Published 2025-11-09, revised 2026-10-25.
+- [Markdown version](https://tryquetra.github.io/nonary-arithmetic/paper.md): plain-text rendering of the same paper.
+
+## Reproducibility
+
+- [Benchmark script](https://github.com/Tryquetra/nonary-arithmetic/blob/main/benchmark/generate_benchmark.py): deterministic (SEED = 20261025, TRIALS = 40, N = 1000), Python standard library only.
+- [Interactive converter](https://tryquetra.github.io/nonary-ternary-bridge-base-converter/): step-by-step visualization of each pass.
+
+## Key results
+
+- Decimal to ternary through nonary (9 = 3²): halves digit-steps (2.00x measured at n = 1000).
+- Ternary to binary through 9 and 8: 6x fewer digit-steps (5.99x measured); 3x when weighted by digit width.
+- Binary to ternary through 8 and 9: 6x fewer digit-steps (5.98x measured); 2x when weighted by digit width.
+- Ternary and binary are adjacent, so they convert directly in both directions; the 9 and 8 bridge is an optional reduction.
+- Balanced ternary: a single linear pass over nonary digits.
+
+## Topics
+
+balanced ternary, nonary arithmetic, octal, base conversion, adjacent-base
+translation, Setun, ternary computing, Catalan's conjecture.

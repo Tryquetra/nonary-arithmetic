@@ -3,7 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Decimal-Ternary and Ternary-Binary Conversion with the p to p±1 Translation Algorithm: Nonary and Octal Bridges as Optional Reductions</title>
+
+    <title>Balanced Ternary Conversion: Nonary and Octal Bridges</title>
+    <meta name="description" content="The p to p±1 algorithm converts ternary, binary and decimal one digit at a time using only addition and comparison. Measured: 6x fewer digit-steps through 9 and 8.">
+    <link rel="canonical" href="https://tryquetra.github.io/nonary-arithmetic/">
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
+    <meta name="author" content="Robson Cassiano">
+    <link rel="alternate" type="text/markdown" href="paper.md" title="Markdown version">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Tryquetra">
+    <meta property="og:locale" content="en">
+    <meta property="og:url" content="https://tryquetra.github.io/nonary-arithmetic/">
+    <meta property="og:title" content="Balanced Ternary Conversion: Nonary and Octal Bridges">
+    <meta property="og:description" content="The p to p±1 algorithm converts ternary, binary and decimal one digit at a time using only addition and comparison. Measured: 6x fewer digit-steps through 9 and 8.">
+    <meta property="og:image" content="https://tryquetra.github.io/nonary-arithmetic/og-nonary-bridges.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Title card: Decimal-Ternary and Ternary-Binary Conversion, with the bridge gain formula G = j times k">
+    <meta property="article:published_time" content="2025-11-09T00:00:00Z">
+    <meta property="article:modified_time" content="2026-10-25T00:00:00Z">
+    <meta property="article:author" content="Robson Cassiano">
+    <meta property="article:section" content="Computer Science">
+    <meta property="article:tag" content="balanced ternary">
+    <meta property="article:tag" content="nonary arithmetic">
+    <meta property="article:tag" content="base conversion">
+    <meta property="article:tag" content="adjacent-base translation">
+    <meta property="article:tag" content="Setun">
+    <meta property="article:tag" content="ternary computing">
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Balanced Ternary Conversion: Nonary and Octal Bridges">
+    <meta name="twitter:description" content="p to p±1 converts ternary, binary and decimal with one addition per digit. Measured: 6x fewer digit-steps through 9 and 8.">
+    <meta name="twitter:image" content="https://tryquetra.github.io/nonary-arithmetic/og-nonary-bridges.png">
+
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- MathJax Configuration -->
     <script>
@@ -52,6 +89,174 @@
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://tryquetra.github.io/nonary-arithmetic/#website",
+          "url": "https://tryquetra.github.io/nonary-arithmetic/",
+          "name": "Tryquetra: Nonary Arithmetic",
+          "inLanguage": "en",
+          "publisher": { "@id": "https://tryquetra.github.io/nonary-arithmetic/#org" }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://tryquetra.github.io/nonary-arithmetic/#webpage",
+          "url": "https://tryquetra.github.io/nonary-arithmetic/",
+          "name": "Balanced Ternary Conversion: Nonary and Octal Bridges",
+          "inLanguage": "en",
+          "isPartOf": { "@id": "https://tryquetra.github.io/nonary-arithmetic/#website" },
+          "mainEntity": { "@id": "https://tryquetra.github.io/nonary-arithmetic/#article" },
+          "primaryImageOfPage": { "@id": "https://tryquetra.github.io/nonary-arithmetic/#ogimage" },
+          "datePublished": "2025-11-09",
+          "dateModified": "2026-10-25"
+        },
+        {
+          "@type": "ScholarlyArticle",
+          "@id": "https://tryquetra.github.io/nonary-arithmetic/#article",
+          "url": "https://tryquetra.github.io/nonary-arithmetic/",
+          "name": "Decimal-Ternary and Ternary-Binary Conversion with the p to p plus or minus 1 Translation Algorithm: Nonary and Octal Bridges as Optional Reductions",
+          "headline": "Decimal-Ternary and Ternary-Binary Conversion with the p to p plus or minus 1 Translation Algorithm",
+          "abstract": "The p to p plus or minus 1 algorithm converts a number between adjacent bases using one addition or subtraction and one comparison per digit. Each pass over the number yields one digit of the result, so a full conversion takes one pass per output digit and its total cost grows quadratically with the number of digits. Because 3 and 2 are adjacent, ternary and binary convert directly in both directions; because 10 and 3 are not, decimal to ternary needs an intermediate base. The practical value of the algorithm lies in the choice of such a base: one adjacent to the source base and a power of the target base. For decimal to ternary conversion, the nonary base (9 = 3 squared, adjacent to 10) halves the number of digit operations. For ternary and binary conversion, the consecutive powers 8 = 2 cubed and 9 = 3 squared provide an optional octal and nonary bridge that reduces digit operations by a factor of six relative to the direct route. The paper states the algorithm with both signs explicit, gives a cost model, reports counts measured with a reference implementation, and describes the conversion to balanced ternary as a single linear pass over nonary digits.",
+          "inLanguage": "en",
+          "datePublished": "2025-11-09",
+          "dateModified": "2026-10-25",
+          "author": { "@id": "https://tryquetra.github.io/nonary-arithmetic/#author" },
+          "publisher": { "@id": "https://tryquetra.github.io/nonary-arithmetic/#org" },
+          "isAccessibleForFree": true,
+          "mainEntityOfPage": { "@id": "https://tryquetra.github.io/nonary-arithmetic/#webpage" },
+          "image": { "@id": "https://tryquetra.github.io/nonary-arithmetic/#ogimage" },
+          "articleSection": "Computer Science",
+          "keywords": [
+            "balanced ternary",
+            "nonary arithmetic",
+            "base conversion",
+            "adjacent-base translation",
+            "Setun",
+            "ternary computing"
+          ],
+          "about": [
+            { "@type": "Thing", "name": "Balanced ternary" },
+            { "@type": "Thing", "name": "Nonary (base 9)" },
+            { "@type": "Thing", "name": "Octal (base 8)" },
+            { "@type": "Thing", "name": "Positional numeral system conversion" },
+            { "@type": "Thing", "name": "Setun computer" },
+            { "@type": "Thing", "name": "Catalan's conjecture" }
+          ],
+          "encoding": [
+            {
+              "@type": "MediaObject",
+              "encodingFormat": "text/markdown",
+              "contentUrl": "https://tryquetra.github.io/nonary-arithmetic/paper.md"
+            }
+          ],
+          "subjectOf": { "@id": "https://tryquetra.github.io/nonary-arithmetic/#benchmark" },
+          "citation": [
+            {
+              "@type": "ScholarlyArticle",
+              "name": "Simple algorithms for p to p-1 and p to p+1 translations",
+              "author": { "@type": "Person", "name": "R. Alvarez H." },
+              "datePublished": "1970",
+              "isPartOf": {
+                "@type": "PublicationIssue",
+                "name": "Computer Science and Cybernetics, issue 7",
+                "publisher": { "@type": "Organization", "name": "Moscow State University Press" }
+              }
+            },
+            {
+              "@type": "ScholarlyArticle",
+              "name": "Ternary computers: The Setun and the Setun 70",
+              "author": [
+                { "@type": "Person", "name": "N. P. Brusentsov" },
+                { "@type": "Person", "name": "J. R. Alvarez" }
+              ],
+              "datePublished": "2011",
+              "pageStart": "74",
+              "pageEnd": "80",
+              "isPartOf": {
+                "@type": "Book",
+                "name": "Perspectives on Soviet and Russian Computing",
+                "publisher": { "@type": "Organization", "name": "Springer" }
+              }
+            },
+            {
+              "@type": "ScholarlyArticle",
+              "name": "REBEL-6: A 32-trit balanced ternary instruction set architecture with R2R compiler pipeline for C",
+              "author": [
+                { "@type": "Person", "name": "S. Bos" },
+                { "@type": "Person", "name": "V. Bodahl" },
+                { "@type": "Person", "name": "O. C. Moholth" },
+                { "@type": "Person", "name": "H. Gundersen" }
+              ],
+              "datePublished": "2025",
+              "pageStart": "98",
+              "pageEnd": "103",
+              "identifier": "https://doi.org/10.1109/ISMVL64713.2025.00028",
+              "isPartOf": {
+                "@type": "PublicationIssue",
+                "name": "2025 IEEE 55th International Symposium on Multiple-Valued Logic (ISMVL)"
+              }
+            },
+            {
+              "@type": "ScholarlyArticle",
+              "name": "Primary cyclotomic units and a proof of Catalan's conjecture",
+              "author": { "@type": "Person", "name": "P. Mihailescu" },
+              "datePublished": "2004",
+              "pageStart": "167",
+              "pageEnd": "195",
+              "isPartOf": {
+                "@type": "PublicationVolume",
+                "volumeNumber": "572",
+                "name": "Journal fur die reine und angewandte Mathematik"
+              }
+            },
+            {
+              "@type": "SoftwareSourceCode",
+              "name": "Nonary arithmetic: base converter (interactive PWA)",
+              "author": { "@id": "https://tryquetra.github.io/nonary-arithmetic/#author" },
+              "datePublished": "2025",
+              "codeRepository": "https://github.com/Tryquetra/nonary-ternary-bridge-base-converter",
+              "url": "https://tryquetra.github.io/nonary-ternary-bridge-base-converter/"
+            }
+          ]
+        },
+        {
+          "@type": "Person",
+          "@id": "https://tryquetra.github.io/nonary-arithmetic/#author",
+          "name": "Robson Cassiano",
+          "affiliation": { "@id": "https://tryquetra.github.io/nonary-arithmetic/#org" },
+          "jobTitle": "Researcher, Department of Computer Science"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://tryquetra.github.io/nonary-arithmetic/#org",
+          "name": "Tryquetra",
+          "sameAs": ["https://github.com/Tryquetra"]
+        },
+        {
+          "@type": "ImageObject",
+          "@id": "https://tryquetra.github.io/nonary-arithmetic/#ogimage",
+          "url": "https://tryquetra.github.io/nonary-arithmetic/og-nonary-bridges.png",
+          "width": 1200,
+          "height": 630,
+          "caption": "Decimal-Ternary and Ternary-Binary Conversion with the p to p plus or minus 1 Translation Algorithm"
+        },
+        {
+          "@type": "SoftwareSourceCode",
+          "@id": "https://tryquetra.github.io/nonary-arithmetic/#benchmark",
+          "name": "Benchmark for the nonary and octal bridge conversions",
+          "description": "Reproduces the measured results of Section 8: pass and digit-step counts for the direct and bridge routes on random inputs with n = 1000 source digits. Deterministic (SEED = 20261025, TRIALS = 40), Python standard library only.",
+          "programmingLanguage": "Python",
+          "codeRepository": "https://github.com/Tryquetra/nonary-arithmetic",
+          "codeSampleType": "benchmark",
+          "author": { "@id": "https://tryquetra.github.io/nonary-arithmetic/#author" },
+          "dateModified": "2026-10-25"
+        }
+      ]
+    }
+    </script>
 </head>
 <body class="bg-gray-100 text-gray-900 leading-relaxed antialiased">
 
