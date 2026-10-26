@@ -1,0 +1,13 @@
+{
+  "name": "nonary-arithmetic-paper",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "./deploy/build.sh",
+    "deploy": "bun run build && bunx wrangler deploy"
+  },
+  "devDependencies": {
+    "mathjax-full": "3.2.2",
+    "tailwindcss": "3.4.17"
+  }
+}

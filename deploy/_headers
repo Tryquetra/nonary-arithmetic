@@ -18,3 +18,6 @@
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
+
+/nonary-ternary-bridge-conversion/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
