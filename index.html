@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Efficiency of Decimal-Ternary Conversion via Nonary Arithmetic</title>
+    <title>Decimal-Ternary and Ternary-Binary Conversion with the p to p±1 Translation Algorithm: Nonary and Octal Bridges as Optional Reductions</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- MathJax Configuration -->
     <script>
@@ -22,15 +21,34 @@
     <!-- Load MathJax -->
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
-        /* Custom overrides for typical academic look */
         body {
-            font-family: 'Georgia', serif; /* Serif for better long-form reading */
+            font-family: 'Georgia', serif;
         }
         h1, h2, h3, h4 {
-            font-family: 'Inter', sans-serif; /* Sans-serif for clear headings */
+            font-family: 'Inter', sans-serif;
         }
         .abstract {
             font-size: 0.95rem;
+        }
+        .kw {
+            font-size: 0.9rem;
+        }
+        pre.code {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            overflow-x: auto;
+        }
+        .is-table th {
+            border: 1px solid #d1d5db;
+            background-color: #f9fafb;
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        .is-table td {
+            border: 1px solid #d1d5db;
+            padding: 0.5rem 0.75rem;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -41,140 +59,401 @@
     <!-- Header -->
     <header class="mb-12 text-center">
         <h1 class="text-3xl md:text-4xl font-bold mb-4 text-gray-800 leading-tight">
-            The Efficiency of Decimal-Ternary Conversion via Nonary Arithmetic: A Practical Application of the $p \to p \pm 1$ Translation Algorithm
+            Decimal-Ternary and Ternary-Binary Conversion with the $p \to p \pm 1$ Translation Algorithm: Nonary and Octal Bridges as Optional Reductions
         </h1>
         <div class="text-gray-600 mt-6">
             <p class="font-semibold">Robson Cassiano</p>
             <p class="italic">Department of Computer Science, Tryquetra</p>
-            <p class="text-sm mt-2">November 9, 2025</p>
+            <p class="text-sm mt-2">First published: November 9, 2025. Revised: October 25, 2026.</p>
         </div>
     </header>
 
     <!-- Abstract -->
-    <section class="mb-10 px-6 py-5 bg-gray-50 border-l-4 border-gray-400 abstract rounded">
+    <section class="mb-8 px-6 py-5 bg-gray-50 border-l-4 border-gray-400 abstract rounded">
         <h2 class="text-lg font-bold uppercase tracking-wider mb-2 text-gray-700 font-sans">Abstract</h2>
         <p class="italic text-gray-700">
-            This paper analyzes the application of $p \to p \pm 1$ base translation algorithms as a computationally efficient solution for the conversion problem between decimal (base 10) and ternary (base 3) systems. The central finding is that, rather than a direct $10 \leftrightarrow 3$ conversion, an indirect route via the nonary (base 9) system offers superior performance. The $p \to p-1$ algorithm facilitates a rapid translation from decimal to nonary, while the relationship $9=3^2$ allows for a trivial mapping from nonary to standard ternary. This method was historically significant in ternary computing architectures, such as the Setun, to optimize input/output (I/O) operations. Additionally, the same $p \to p-1$ algorithm provides a direct route for $3 \to 2$ conversion, crucial for interoperability with binary systems.
+            The $p \to p \pm 1$ algorithm converts a number between adjacent bases using one addition or subtraction and one comparison per digit. Each pass over the number yields one digit of the result, so a full conversion takes one pass per output digit and its total cost grows quadratically with the number of digits. Because 3 and 2 are adjacent, ternary and binary convert directly in both directions; because 10 and 3 are not, decimal to ternary needs an intermediate base. This paper shows that the practical value of the algorithm lies in the choice of such a base: one adjacent to the source base and a power of the target base. For decimal to ternary conversion, the nonary base ($9 = 3^2$, adjacent to 10) halves the number of digit operations. For ternary and binary conversion, the consecutive powers $8 = 2^3$ and $9 = 3^2$ provide an optional octal and nonary bridge that reduces digit operations by a factor of six relative to the direct route (a factor of three for ternary to binary and two for binary to ternary when each step is weighted by the width of its digits). We state the algorithm with both signs explicit, give a cost model, report counts measured with a reference implementation, and describe the conversion to balanced ternary as a single linear pass over nonary digits.
         </p>
+        <p class="kw text-gray-700 mt-4"><strong>Keywords:</strong> balanced ternary, nonary arithmetic, base conversion, adjacent-base translation, Setun, ternary computing</p>
     </section>
 
     <!-- Article Body -->
     <article class="space-y-8">
+        <!-- 1. Introduction -->
         <section>
             <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">1. Introduction</h2>
             <p class="mb-4">
-                Ternary computing, particularly balanced ternary systems (using digits $\{-1, 0, 1\}$), offers theoretical advantages in storage efficiency and logical complexity. However, its practical adoption, exemplified by the Setun computer, faced fundamental interoperability challenges:
+                Ternary computing, particularly balanced ternary with digits $\{-1, 0, 1\}$, offers theoretical advantages in storage efficiency and logical complexity. Its practical adoption, exemplified by the Setun computer, faces two interoperability problems:
             </p>
             <ol class="list-decimal list-inside ml-4 mb-4 space-y-2">
-                <li><strong>Human Interface (I/O):</strong> The need to convert data to and from the decimal (base 10) system, which dominates human interaction.</li>
-                <li><strong>Machine Interoperability:</strong> The need to exchange data with the ubiquitous binary (base 2) architecture.</li>
+                <li><strong>Human interface (I/O).</strong> Data must be converted to and from decimal (base 10), the base of human interaction.</li>
+                <li><strong>Machine interoperability.</strong> Data must be exchanged with binary (base 2) architectures.</li>
             </ol>
-            <p>
-                Direct conversions (e.g., $10 \leftrightarrow 3$ or $3 \leftrightarrow 2$) are complex and slow arithmetic operations. This paper demonstrates how an algorithm for conversion between adjacent bases ($p$ and $p \pm 1$) [1] provides an elegant solution to both bottlenecks.
+            <p class="mb-4">
+                Converting directly between bases such as $10 \leftrightarrow 3$ or $3 \leftrightarrow 2$ requires repeated division by a small number. The $p \to p \pm 1$ translation algorithm [1] performs each of these divisions with very simple digit operations when the two bases are adjacent. This paper makes the following contributions:
             </p>
+            <ol class="list-decimal list-inside ml-4 mb-4 space-y-2">
+                <li>An explicit statement of the algorithm with both signs and a bound on every intermediate value (Section 2).</li>
+                <li>A cost model that separates the quadratic growth of the conversion from the cost of a single step (Section 3).</li>
+                <li>A bridge principle that quantifies the gain from an intermediate base (Section 4).</li>
+                <li>Application to decimal I/O through the nonary base (Section 5).</li>
+                <li>Application to binary interoperability: direct adjacent conversion between 3 and 2, with the octal and nonary bases as an optional reduction that exploits 8 and 9 being consecutive powers (Section 6).</li>
+                <li>A linear-time conversion from nonary to balanced ternary (Section 7).</li>
+                <li>Measured operation counts, a benchmark script, and a reference implementation (Section 8 and Appendix A).</li>
+            </ol>
         </section>
 
+        <!-- 2. Algorithm -->
         <section>
             <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">2. The $p \to p \pm 1$ Translation Algorithm</h2>
+
+            <h3 class="text-xl font-semibold mb-3 mt-6 text-gray-800">2.1. Statement</h3>
             <p class="mb-4">
-                The core algorithm [1] allows the conversion of a number in base $p$ to base $p-1$ or $p+1$ through an iterative process similar to synthetic division. Given a number $(a_n \dots a_0)_p$, the algorithm computes a quotient $(b_n \dots b_0)_p$ and a remainder $c_0$ from the division by $(p \pm 1)$, processing digit by digit.
-            </p>
-            <p class="mb-4">
-                The recurrence formulas (with sign adjustments based on standard implementations) are:
+                Let $N = (a_n \dots a_0)_p$ be a number in base $p$ and let $q = p + \sigma$ with $\sigma \in \{-1, +1\}$ and $q \ge 2$. Starting from $c_{n+1} = 0$ and moving from the most significant digit to the least significant one ($i = n, n-1, \dots, 0$), compute
             </p>
             <div class="my-6 p-4 bg-gray-50 rounded border border-gray-100 overflow-x-auto text-center">
-                $$c_i = \{a_i \mp c_{i+1}\}_{p \pm 1}$$
-                $$b_i = c_{i+1} + [a_i \mp c_{i+1}]_{p \pm 1}$$
+                $$v_i = a_i - \sigma\, c_{i+1}, \qquad c_i = v_i \bmod q, \qquad b_i = c_{i+1} + \left\lfloor \frac{v_i}{q} \right\rfloor$$
             </div>
-            <p class="mb-4 text-sm text-gray-600 text-center">
-                <em>Where $c_{n+1}=0$, $\{x\}_y$ denotes the remainder, and $[x]_y$ the integer quotient.</em>
+            <p class="mb-4">
+                where $\bmod$ returns a value in $\{0, \dots, q-1\}$ and $\lfloor \cdot \rfloor$ is floor division. Then $(b_n \dots b_0)_p$ is the quotient and $c_0$ is the remainder of the division of $N$ by $q$, so $N = q \cdot (b_n \dots b_0)_p + c_0$.
+            </p>
+            <p class="mb-4">The two signs give two concrete cases:</p>
+            <div class="overflow-x-auto my-4">
+                <table class="is-table w-full text-sm">
+                    <thead>
+                        <tr>
+                            <th>Case</th><th>Base $q$</th><th>$\sigma$</th><th>$v_i$</th><th>Range of $v_i$</th><th>Correction</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>$p \to p-1$</td><td>$p-1$</td><td>$-1$</td><td>$a_i + c_{i+1}$</td>
+                            <td>$0 \le v_i \le 2q-1$</td><td>if $v_i \ge q$: subtract $q$, add 1 to $b_i$</td>
+                        </tr>
+                        <tr>
+                            <td>$p \to p+1$</td><td>$p+1$</td><td>$+1$</td><td>$a_i - c_{i+1}$</td>
+                            <td>$-p \le v_i \le p-1$</td><td>if $v_i &lt; 0$: add $q$, subtract 1 from $b_i$</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mb-4">
+                In both cases $\lfloor v_i / q \rfloor$ takes only two values, so a step consists of one addition or subtraction, one comparison, and one conditional correction. Every quotient digit satisfies $0 \le b_i \le p-1$, so the quotient is a valid base-$p$ numeral.
             </p>
 
-            <h3 class="text-xl font-semibold mb-3 mt-6 text-gray-800">2.1. Mathematical Derivation</h3>
+            <h3 class="text-xl font-semibold mb-3 mt-6 text-gray-800">2.2. Derivation</h3>
             <p class="mb-4">
-                The correctness of these formulas derives from the substitution $p = (p \pm 1) \mp 1$ into the standard polynomial representation of the number. In any step $i$ of the division, the current partial value is $c_{i+1} \cdot p + a_i$.
+                Write $p = q - \sigma$. The partial value at step $i$ is
             </p>
+            <div class="my-6 p-4 bg-gray-50 rounded border border-gray-100 overflow-x-auto text-center">
+                $$V_i = c_{i+1}\, p + a_i = c_{i+1}\, q + \left(a_i - \sigma\, c_{i+1}\right) = c_{i+1}\, q + v_i .$$
+            </div>
             <p class="mb-4">
-                By substituting $p$:
-                $$ c_{i+1} \cdot ((p \pm 1) \mp 1) + a_i $$
-                $$ = c_{i+1} \cdot (p \pm 1) \mp c_{i+1} + a_i $$
+                Dividing $v_i$ by $q$ gives $V_i = \left(c_{i+1} + \lfloor v_i / q \rfloor\right) q + (v_i \bmod q)$, which yields the formulas for $b_i$ and $c_i$. The multiple of $q$ is absorbed into the quotient digit and only the small value $v_i$ is reduced, so no multiplication by $p$ and no multi-digit arithmetic is needed.
             </p>
-            <p>
-                Taking this value modulo $(p \pm 1)$, the first term vanishes, leaving the remainder $c_i = \{a_i \mp c_{i+1}\}_{p \pm 1}$. This simple linear recurrence avoids full multi-digit multiplication, explaining the algorithm's efficiency.
+
+            <h3 class="text-xl font-semibold mb-3 mt-6 text-gray-800">2.3. Conversion by repeated passes</h3>
+            <p class="mb-4">
+                Applying the algorithm repeatedly to the successive quotients produces the digits of $N$ in base $q$, least significant first: the remainder of each pass is the next output digit. The process ends when the quotient is zero.
             </p>
+            <p class="mb-4"><strong>Example.</strong> One pass on $1234_{10}$ with $q = 9$ ($\sigma = -1$):</p>
+            <div class="overflow-x-auto my-4">
+                <table class="is-table w-full text-sm">
+                    <thead>
+                        <tr><th>$a_i$</th><th>$c_{i+1}$</th><th>$v_i$</th><th>$c_i$</th><th>$b_i$</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                        <tr><td>2</td><td>1</td><td>3</td><td>3</td><td>1</td></tr>
+                        <tr><td>3</td><td>3</td><td>6</td><td>6</td><td>3</td></tr>
+                        <tr><td>4</td><td>6</td><td>10</td><td>1</td><td>7</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mb-4">The quotient is $0137 = 137$ and the remainder is 1. The complete conversion:</p>
+            <div class="overflow-x-auto my-4">
+                <table class="is-table w-full text-sm">
+                    <thead>
+                        <tr><th>Pass</th><th>Dividend (base 10)</th><th>Quotient</th><th>Remainder</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>0</td><td>1234</td><td>137</td><td>1</td></tr>
+                        <tr><td>1</td><td>137</td><td>15</td><td>2</td></tr>
+                        <tr><td>2</td><td>15</td><td>1</td><td>6</td></tr>
+                        <tr><td>3</td><td>1</td><td>0</td><td>1</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mb-4">Reading the remainders from the last pass to the first gives $1234_{10} = 1621_9$.</p>
         </section>
 
+        <!-- 3. Cost Model -->
         <section>
-            <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">3. Methodology: The Nonary (Base 9) Bridge for Decimal I/O</h2>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">3. Cost Model</h2>
             <p class="mb-4">
-                The solution for the $10 \leftrightarrow 3$ conversion bottleneck lies in the observation that $9 = 3^2$. This power relationship allows for a trivial (mapping-based) conversion between bases 9 and 3, analogous to the established relationship between hexadecimal (base 16) and binary (base 2) systems.
+                Define a <strong>digit-step</strong> as the processing of one digit inside a pass. A pass over $m$ digits costs $m$ digit-steps. Converting an $n$-digit number from base $p$ to base $q$ takes about $L = n \ln p / \ln q$ passes, and the length of the dividend shrinks roughly linearly from $n$ to 0, so the total is
             </p>
-            <p class="mb-4">
-                The $p \to p \pm 1$ algorithm is therefore best applied to translate between bases 10 and 9, rather than directly to base 3.
-            </p>
-
-            <h3 class="text-xl font-semibold mb-3 mt-6 text-gray-800">3.1. Input Process: Decimal (10) $\to$ Ternary (3)</h3>
-            <ol class="list-decimal list-outside ml-6 space-y-3 mb-6">
-                <li>
-                    <strong>Decimal $\to$ Nonary Conversion ($p \to p-1$):</strong> The input number (base $p=10$) is converted to base 9 (base $p-1$) using the successive division algorithm by 9.
-                    <br><span class="text-gray-600 italic ml-4">Example [1]: $1234_{10} \to 1621_9$</span>
-                </li>
-                <li>
-                    <strong>Nonary $\to$ Standard Ternary Conversion ($9 \to 3$):</strong> Each nonary digit is mapped directly to a pair of ternary digits (trits) $\{0, 1, 2\}$, since $9=3^2$.
-                    <br><span class="text-gray-600 italic ml-4">Result: $1621_9 \to (01)(20)(02)(01)_3 = 1200201_3$ (standard representation)</span>
-                </li>
-                <li>
-                    <strong>Conversion to Balanced Ternary (Setun):</strong> The standard ternary number $\{0, 1, 2\}$ is finally converted to the balanced system $\{-1, 0, 1\}$ via a fast internal CPU algorithm.
-                </li>
-            </ol>
-
-            <h3 class="text-xl font-semibold mb-3 mt-6 text-gray-800">3.2. Output Process: Ternary (3) $\to$ Decimal (10)</h3>
-            <ol class="list-decimal list-outside ml-6 space-y-3">
-                <li>
-                    <strong>Balanced $\to$ Standard Ternary Conversion:</strong> The Setun's internal balanced number is converted to its standard ternary representation $\{0, 1, 2\}$.
-                </li>
-                <li>
-                    <strong>Standard Ternary $\to$ Nonary Conversion ($3 \to 9$):</strong> The trits are grouped in pairs (from right to left) and mapped directly to nonary digits.
-                    <br><span class="text-gray-600 italic ml-4">Example: $1200201_3 \to (01)(20)(02)(01)_3 \to 1621_9$</span>
-                </li>
-                <li>
-                    <strong>Nonary $\to$ Decimal Conversion ($p \to p+1$):</strong> The base 9 number (base $p=9$) is converted to base 10 (base $p+1$) using the successive division algorithm by 10.
-                    <br><span class="text-gray-600 italic ml-4">Example [1]: $1621_9 \to 1234_{10}$</span>
-                </li>
-            </ol>
-        </section>
-
-        <section>
-            <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">4. Discussion and Application to Binary Interoperability</h2>
-            <p class="mb-4">
-                The "nonary bridge" methodology (Section 3) efficiently solves the decimal I/O problem. However, the $p \to p \pm 1$ algorithm has a second, equally crucial application: interoperability with standard binary systems.
-            </p>
-            <p>
-                For a ternary computer (base $p=3$) to communicate with a binary computer (base $p-1=2$), a $3 \to 2$ conversion is required. The <strong>$p \to p-1$ algorithm</strong>, with $p=3$, provides the most direct and computationally efficient method for performing this <strong>Ternary $\to$ Binary</strong> translation. A number in base 3 can be repeatedly divided by base 2 (represented in ternary arithmetic as standard digits) using the same linear, digit-by-digit method described in Section 2.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">5. Conclusion</h2>
-            <p class="mb-4">
-                The $p \to p \pm 1$ translation algorithm is not merely a mathematical curiosity but a historically significant software and hardware engineering tool with a dual application for ternary systems:
-            </p>
-            <ul class="list-disc list-inside ml-4 space-y-2">
-                <li><strong>I/O Efficiency:</strong> It elegantly solves the decimal conversion bottleneck ($10 \leftrightarrow 3$) by strategically using base 9 as an intermediary.</li>
-                <li><strong>Interoperability:</strong> It provides a native, direct method for ternary-to-binary conversion ($3 \to 2$), essential for communication with standard architectures.</li>
+            <div class="my-6 p-4 bg-gray-50 rounded border border-gray-100 overflow-x-auto text-center">
+                $$T \approx \frac{n \cdot L}{2} = \frac{n^2}{2} \cdot \frac{\ln p}{\ln q}.$$
+            </div>
+            <p class="mb-4">Two consequences follow.</p>
+            <ul class="list-disc list-inside ml-4 space-y-2 mb-4">
+                <li>The total cost is quadratic in $n$ for any choice of adjacent or non-adjacent bases. Subquadratic conversions based on divide and conquer with fast multiplication exist for very large numbers. The algorithm in this paper targets word-sized data, simple hardware, and I/O routines where only addition and comparison are available.</li>
+                <li>The contribution of the adjacent-base algorithm is the cost of one step. Generic short division from base $p$ to base $q$ also costs one step per digit, but each step multiplies the running remainder by $p$ and divides by $q$, which needs a divider or a lookup table. The adjacent-base step needs only an addition and a comparison.</li>
             </ul>
-            <p class="mt-4">
-                This approach demonstrates how the selection of adjacent base conversion algorithms is fundamental to the practical viability of non-binary computing architectures.
+            <p>
+                Reducing the number of digit-steps further requires reducing the number of passes or the length of the strings, and this is what the bridge principle of the next section does.
             </p>
         </section>
 
-        <section class="mt-12 pt-8 border-t-2 border-gray-200">
-            <h2 class="text-xl font-bold mb-4 text-gray-800">6. References</h2>
-            <ol class="list-decimal list-outside ml-6 text-sm text-gray-700">
-                <li>
-                    Alvarez H., R. (1970). <em>Simple algorithms for p→p-1 and p→p+1 translations</em>. In: Computer Science and Cybernetics, issue 7. Moscow State University Press.
-                </li>
+        <!-- 4. Bridge Principle -->
+        <section>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">4. The Bridge Principle</h2>
+            <p class="mb-4">
+                Let a number have $n$ digits in a source base $s$, and let $t$ be the target base. Suppose there are bases $A$ and $B$ such that
+            </p>
+            <ol class="list-decimal list-inside ml-4 mb-4 space-y-2">
+                <li>$A = s^j$ for some $j \ge 1$, so that $A$-digits are obtained by grouping $j$ source digits;</li>
+                <li>$B = t^k$ for some $k \ge 1$, so that each $B$-digit splits into $k$ target digits;</li>
+                <li>$|A - B| = 1$, so that the adjacent-base algorithm converts from $A$ to $B$.</li>
             </ol>
+            <p class="mb-4">
+                Grouping and splitting are linear-time digit mappings. The conversion then proceeds as $s \to A$ (grouping), $A \to B$ (adjacent-base passes), $B \to t$ (splitting).
+            </p>
+            <p class="mb-4"><strong>Gain.</strong> The direct route needs about $n \ln s / \ln t$ passes over strings of length $n$. The bridge route needs about $n \ln s / \ln B = (n \ln s / \ln t)/k$ passes, since the passes produce $B$-digits, and each pass runs over strings of length $n/j$. The number of passes falls by a factor $k$, the string length falls by a factor $j$, and the number of digit-steps falls by a factor</p>
+            <div class="my-6 p-4 bg-gray-50 rounded border border-gray-100 overflow-x-auto text-center">
+                $$G = j \cdot k .$$
+            </div>
+            <p class="mb-4">
+                An $A$-digit carries $j$ source digits, so weighting each step by its width divides the bridge cost by $j$ and leaves a width-weighted gain of $k$. Section 8 reports both quantities.
+            </p>
+            <p><strong>Consecutive powers.</strong> A bridge needs two adjacent bases, one a power of the source and one a power of the target. Catalan's conjecture, proved by Mihăilescu [4], states that $3^2 - 2^3 = 1$ is the only case of two consecutive perfect powers with exponents greater than one. The pair $(9, 8)$ is therefore the unique bridge of this type that connects binary and ternary, and it works in both directions. When source and target are already adjacent, as 3 and 2 are, no bridge is required; the bridge then serves only to reduce digit-steps, at the cost of one linear grouping and one linear splitting pass.</p>
+        </section>
+
+        <!-- 5. Decimal and Ternary -->
+        <section>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">5. Decimal and Ternary through the Nonary Bridge</h2>
+
+            <h3 class="text-xl font-semibold mb-3 mt-6 text-gray-800">5.1. Input: decimal to ternary</h3>
+            <p class="mb-4">
+                With $s = 10$, take $A = 10$ ($j = 1$) and $B = 9 = 3^2$ ($k = 2$), which are adjacent. The gain is $G = 2$.
+            </p>
+            <ol class="list-decimal list-outside ml-6 space-y-3 mb-6">
+                <li><strong>Decimal to nonary</strong> ($p \to p-1$, $p = 10$, $q = 9$). Example: $1234_{10} \to 1621_9$ (Section 2.3).</li>
+                <li><strong>Nonary to standard ternary</strong> (each digit maps to two trits). $1621_9 \to (01)(20)(02)(01)_3 = 1200201_3$.</li>
+                <li><strong>Standard to balanced ternary</strong> by a linear pass (Section 7).</li>
+            </ol>
+
+            <h3 class="text-xl font-semibold mb-3 mt-6 text-gray-800">5.2. Output: ternary to decimal</h3>
+            <p class="mb-4">
+                With $s = 3$, take $A = 9 = 3^2$ ($j = 2$) and $B = 10$ ($k = 1$). The gain is $G = 2$, and the width-weighted gain is 1: the number of passes equals the number of decimal digits in both routes, and the saving comes from strings that are half as long and from the simpler step.
+            </p>
+            <ol class="list-decimal list-outside ml-6 space-y-3 mb-6">
+                <li><strong>Balanced to standard ternary</strong> by a linear pass.</li>
+                <li><strong>Standard ternary to nonary</strong> (trits grouped in pairs from the right). $1200201_3 \to 1621_9$.</li>
+                <li><strong>Nonary to decimal</strong> ($p \to p+1$, $p = 9$, $q = 10$, $\sigma = +1$). Example for $1621_9$:</li>
+            </ol>
+            <div class="overflow-x-auto my-4">
+                <table class="is-table w-full text-sm">
+                    <thead>
+                        <tr><th>Pass</th><th>Dividend (base 9)</th><th>Quotient (base 9)</th><th>Remainder</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>0</td><td>1621</td><td>146</td><td>4</td></tr>
+                        <tr><td>1</td><td>146</td><td>13</td><td>3</td></tr>
+                        <tr><td>2</td><td>13</td><td>1</td><td>2</td></tr>
+                        <tr><td>3</td><td>1</td><td>0</td><td>1</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>The remainders, read from the last pass to the first, give $1234_{10}$.</p>
+        </section>
+
+        <!-- 6. Binary Interoperability -->
+        <section>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">6. Binary Interoperability</h2>
+
+            <h3 class="text-xl font-semibold mb-3 mt-6 text-gray-800">6.1. Ternary to binary</h3>
+            <p class="mb-4">
+                Bases 3 and 2 are adjacent ($|3 - 2| = 1$), so the $p \to p-1$ algorithm converts ternary directly to binary with no intermediate base. Example: $1200201_3 \to 10011010010_2$, which equals $1234_{10}$.
+            </p>
+            <p class="mb-4">
+                A bridge can reduce the number of digit-steps at the cost of extra mapping. With $A = 9 = 3^2$ ($j = 2$) and $B = 8 = 2^3$ ($k = 3$), the gain is $G = 6$ in digit-steps and $k = 3$ when weighted by width:
+            </p>
+            <ol class="list-decimal list-outside ml-6 space-y-3 mb-4">
+                <li>Group the trits in pairs to obtain nonary digits.</li>
+                <li>Convert nonary to octal with the $p \to p-1$ algorithm ($p = 9$, $q = 8$).</li>
+                <li>Replace each octal digit by three bits.</li>
+            </ol>
+            <p class="mb-4">
+                Example: $1200201_3 \to 1621_9 \to 2322_8 \to 10011010010_2$.
+            </p>
+            <p class="mb-4">
+                The adjacent pair $(3, 4)$ with $4 = 2^2$ is another option: the $p \to p+1$ algorithm converts directly from base 3 to base 4 and each quaternary digit splits into two bits. Here $j = 1$ and $k = 2$, so $G = 2$.
+            </p>
+
+            <h3 class="text-xl font-semibold mb-3 mt-6 text-gray-800">6.2. Binary to ternary</h3>
+            <p class="mb-4">
+                Bases 2 and 3 are also adjacent, so the $p \to p+1$ algorithm converts binary directly to ternary. Example: $10011010010_2 \to 1200201_3$. A bridge through octal and nonary reduces digit-steps by $G = 6$ (width-weighted $k = 2$):
+            </p>
+            <ol class="list-decimal list-outside ml-6 space-y-3 mb-4">
+                <li>Group the bits in threes to obtain octal digits.</li>
+                <li>Convert octal to nonary with the $p \to p+1$ algorithm ($p = 8$, $q = 9$).</li>
+                <li>Replace each nonary digit by two trits.</li>
+            </ol>
+            <p>Example: $10011010010_2 \to 2322_8 \to 1621_9 \to 01200201_3$.</p>
+        </section>
+
+        <!-- 7. Balanced Ternary -->
+        <section>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">7. Balanced Ternary</h2>
+            <p class="mb-4">
+                The balanced ternary digits are $\{-1, 0, +1\}$. A balanced nonary digit $d \in \{-4, \dots, 4\}$ corresponds to exactly one pair of balanced trits $(a, b)$ with $d = 3a + b$, and the mapping is a bijection on all nine values:
+            </p>
+            <div class="overflow-x-auto my-4">
+                <table class="is-table w-full text-sm">
+                    <thead>
+                        <tr><th>$d$</th><th>$(a, b)$</th><th>$d$</th><th>$(a, b)$</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>-4</td><td>(-1, -1)</td><td>1</td><td>(0, 1)</td></tr>
+                        <tr><td>-3</td><td>(-1, 0)</td><td>2</td><td>(1, -1)</td></tr>
+                        <tr><td>-2</td><td>(-1, 1)</td><td>3</td><td>(1, 0)</td></tr>
+                        <tr><td>-1</td><td>(0, -1)</td><td>4</td><td>(1, 1)</td></tr>
+                        <tr><td>0</td><td>(0, 0)</td><td></td><td></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mb-4">
+                Converting a standard nonary numeral (digits $0$ to $8$) to balanced nonary takes one linear pass from the least significant digit: add the incoming carry to the digit, and if the result exceeds 4, subtract 9 and carry 1 into the next digit. A final carry becomes a leading 1. The balanced nonary numeral then maps to balanced trits two at a time, with no carries between pairs.
+            </p>
+            <p class="mb-4">
+                Example: $1621_9$ becomes the balanced nonary digits $(2, -3, 2, 1)$, which map to the pairs $(1,-1)(-1,0)(1,-1)(0,1)$ and give the balanced ternary numeral $(1, -1, -1, 0, 1, -1, 0, 1)$. Check: $3^7 - 3^6 - 3^5 + 3^3 - 3^2 + 1 = 1234$.
+            </p>
+            <p class="mb-4">
+                This replaces the "fast internal CPU algorithm" of the first version of this paper with an explicit linear procedure whose cost is negligible next to the quadratic division passes.
+            </p>
+        </section>
+
+        <!-- 8. Measured Results -->
+        <section>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">8. Measured Results</h2>
+            <p class="mb-4">
+                A reference implementation (Appendix A) was used to verify the algorithm and to count passes and digit-steps. The adjacent-base conversion was checked against generic short division and against exact integer arithmetic on random numbers of up to 200 digits, for every pair of bases in $2 \dots 36$ that differs by one, in both directions. All bridge routes below were checked to reproduce the same value as the direct route.
+            </p>
+            <p class="mb-4">
+                Counts for random inputs with $n = 1000$ source digits (decimal digits for the routes from base 10, trits for the routes from base 3, bits for $2 \to 3$). The rows are split by the role the bridge plays. Where source and target are not adjacent, the bridge is what makes the adjacent-base algorithm applicable at all, and the direct column is generic short division. Where they are adjacent, the direct column is already the adjacent-base conversion and the bridge is an optional reduction.
+            </p>
+
+            <h3 class="text-xl font-semibold mb-3 mt-6 text-gray-800">8.1. Bridges that are required</h3>
+            <p class="mb-4 text-sm text-gray-600">Source and target are not adjacent, so the direct column is generic short division.</p>
+            <div class="overflow-x-auto my-4">
+                <table class="is-table w-full text-sm">
+                    <thead>
+                        <tr>
+                            <th>Route</th><th>Bridge</th><th>Passes direct</th><th>Passes bridge</th><th>Pass ratio</th>
+                            <th>Steps direct</th><th>Steps bridge</th><th>Step ratio</th><th>Width-weighted gain</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>$10 \to 3$</td><td>9</td><td>2096</td><td>1048</td><td>2.00</td><td>1,048,826</td><td>524,663</td><td>2.00</td><td>2</td></tr>
+                        <tr><td>$3 \to 10$</td><td>9</td><td>478</td><td>478</td><td>1.00</td><td>239,146</td><td>119,693</td><td>2.00</td><td>1</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-xl font-semibold mb-3 mt-6 text-gray-800">8.2. Bridges that are optional</h3>
+            <p class="mb-4 text-sm text-gray-600">Source and target are adjacent, so the direct column is already the adjacent-base conversion. The bridge trades one linear grouping pass and one linear splitting pass for fewer digit-steps.</p>
+            <div class="overflow-x-auto my-4">
+                <table class="is-table w-full text-sm">
+                    <thead>
+                        <tr>
+                            <th>Route</th><th>Bridge</th><th>Passes direct</th><th>Passes bridge</th><th>Pass ratio</th>
+                            <th>Steps direct</th><th>Steps bridge</th><th>Step ratio</th><th>Width-weighted gain</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>$3 \to 2$</td><td>9 and 8</td><td>1585</td><td>529</td><td>3.00</td><td>793,265</td><td>132,510</td><td>5.99</td><td>3</td></tr>
+                        <tr><td>$3 \to 2$</td><td>4</td><td>1585</td><td>793</td><td>2.00</td><td>793,265</td><td>396,882</td><td>2.00</td><td>2</td></tr>
+                        <tr><td>$2 \to 3$</td><td>8 and 9</td><td>631</td><td>316</td><td>2.00</td><td>315,945</td><td>52,846</td><td>5.98</td><td>2</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mb-4">
+                The two optional routes through 9 and 8 differ in which direction they group and split: $3 \to 2$ groups trits in pairs and splits octal digits into three bits, while $2 \to 3$ groups bits in threes and splits nonary digits into two trits. Both reduce digit-steps by close to six, and both pay two linear passes that the table does not count.
+            </p>
+            <p class="mb-4">
+                The measured ratios match the gain $G = jk$ of Section 4 for every route. The cost model of Section 3 predicts $n L / 2 = 1000 \cdot 2096 / 2 = 1{,}047{,}952$ digit-steps for the direct $10 \to 3$ route, against 1,048,826 measured. Runs with $n = 100$ and $n = 3000$ keep the same ratios: the $10 \to 3$ pass ratio is $2.00$ at both sizes and the step ratio is $1.99$ and $2.00$. All counts are produced by the bundled benchmark script `benchmark/generate_benchmark.py`, which is deterministic and requires only the Python standard library.
+            </p>
+            <p class="mb-4">
+                The counts measure digit operations. Wall-clock time and hardware cost depend on the implementation and are not part of this study.
+            </p>
+            <p class="mb-4">
+                An interactive demonstration implementing the same adjacent-base conversion, with a step-by-step visualization of each pass, is available as a web application [5]. It uses the same algorithm as the reference implementation above.
+            </p>
+        </section>
+
+        <!-- 9. Context and Limitations -->
+        <section>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">9. Context and Limitations</h2>
+            <p class="mb-4"><strong>Historical context.</strong> The Setun, a balanced ternary computer, was developed at Moscow State University in 1958, and its successor Setun-70 ran in 1970 [2]. The $p \to p \pm 1$ algorithms were published in 1970 in a Moscow State University series [1], so they belong to the same technical environment. Whether they were used in the input and output routines of the Setun machines is a question this paper leaves open.</p>
+            <p class="mb-4"><strong>Limitations.</strong></p>
+            <ul class="list-disc list-inside ml-4 space-y-2 mb-4">
+                <li>The conversion cost remains quadratic. The bridge gains are constant factors.</li>
+                <li>The bridge requires two adjacent bases with the power structure of Section 4. Other pairs can be reached by chaining adjacent-base conversions, and each stage of a chain costs a full conversion.</li>
+                <li>The paper treats non-negative integers. Signs and fractional parts need separate handling.</li>
+                <li>The results are digit-operation counts. A study of execution time or circuit cost is future work.</li>
+            </ul>
+            <p><strong>Possible application.</strong> Recent work on a binary-compatible balanced ternary instruction set [3] requires radix conversion between 32-bit binary words and ternary registers. The $(8, 9)$ bridge of Section 6 is a candidate structure for studying fixed-width conversion circuits. This paper does not evaluate hardware cost.</p>
+        </section>
+
+        <!-- 10. Conclusion -->
+        <section>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">10. Conclusion</h2>
+            <p class="mb-4">
+                The $p \to p \pm 1$ algorithm converts between adjacent bases with a step that needs only addition and comparison. Its total cost grows quadratically, and the choice of a bridge base determines the constant. Ternary and binary are adjacent, so they convert directly; decimal and ternary are not, so the nonary base is what makes that route cheap. A bridge base that is adjacent to the source and a power of the target reduces the number of digit-steps by a factor $G = jk$ relative to the direct route. For decimal and ternary, the nonary base gives $G = 2$ in both directions. For ternary and binary, the consecutive powers 8 and 9 give $G = 6$ in digit-steps (3 and 2 when weighted by digit width), and the pair $(3, 4)$ gives $G = 2$. Balanced ternary output follows from a linear pass over nonary digits. The counts in Section 8 confirm these factors on random inputs of up to 3000 digits.
+            </p>
+        </section>
+
+        <!-- References -->
+        <section class="mt-12 pt-8 border-t-2 border-gray-200">
+            <h2 class="text-xl font-bold mb-4 text-gray-800">References</h2>
+            <ol class="list-decimal list-outside ml-6 text-sm text-gray-700 space-y-3">
+                <li>Alvarez H., R. (1970). <em>Simple algorithms for p→p-1 and p→p+1 translations</em>. In: Computer Science and Cybernetics, issue 7. Moscow State University Press.</li>
+                <li>Brusentsov, N. P., &amp; Alvarez, J. R. (2011). Ternary computers: The Setun and the Setun 70. In <em>Perspectives on Soviet and Russian Computing</em>, IFIP AICT 357, Springer, pp. 74-80.</li>
+                <li>Bos, S., Bodahl, V., Moholth, O. C., &amp; Gundersen, H. (2025). REBEL-6: A 32-trit balanced ternary instruction set architecture with R2R compiler pipeline for C. In <em>2025 IEEE 55th International Symposium on Multiple-Valued Logic (ISMVL)</em>, pp. 98-103. https://doi.org/10.1109/ISMVL64713.2025.00028</li>
+                <li>Mihăilescu, P. (2004). Primary cyclotomic units and a proof of Catalan's conjecture. <em>Journal für die reine und angewandte Mathematik</em>, 572, 167-195.</li>
+                <li>Cassiano, R. (2025). Nonary arithmetic: base converter (interactive PWA). GitHub: https://github.com/Tryquetra/nonary-ternary-bridge-base-converter. Live demo: https://tryquetra.github.io/nonary-ternary-bridge-base-converter/</li>
+            </ol>
+        </section>
+
+        <!-- Appendix A -->
+        <section class="mt-12 pt-8 border-t-2 border-gray-200">
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Appendix A. Reference Implementation (Python)</h2>
+            <p class="mb-4 text-sm text-gray-700">The adjacent-base pass and the repeated-pass conversion, verified against generic short division and exact integer arithmetic for every pair of adjacent bases in $2 \dots 36$.</p>
+            <pre class="code p-4 bg-gray-50 rounded border border-gray-200"><code>def adjacent_pass(a, p, q):
+    """Divide base-p digits a (most significant first) by q = p - 1 or p + 1."""
+    sigma = q - p                       # -1 or +1
+    c, quotient = 0, []
+    for d in a:
+        v = d - sigma * c               # one addition or subtraction
+        quotient.append(c + v // q)     # v // q is 0 or 1 (q = p - 1), 0 or -1 (q = p + 1)
+        c = v % q
+    i = next((k for k, x in enumerate(quotient) if x), len(quotient))
+    return quotient[i:], c              # leading zeros removed
+
+
+def convert(a, p, q):
+    """Repeated passes; returns the digits of the number in base q, most significant first."""
+    out = []
+    while a:
+        a, r = adjacent_pass(a, p, q)
+        out.append(r)
+    return out[::-1] or [0]
+
+
+print(convert([1, 2, 3, 4], 10, 9))     # [1, 6, 2, 1]
+print(convert([1, 6, 2, 1], 9, 10))     # [1, 2, 3, 4]</code></pre>
         </section>
     </article>
 </main>
