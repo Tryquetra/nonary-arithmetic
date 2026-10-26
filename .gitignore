@@ -219,3 +219,7 @@ $RECYCLE.BIN/
 # Python
 __pycache__/
 *.py[cod]
+dist/
+.wrangler/
+.cloudflare/
+node_modules/

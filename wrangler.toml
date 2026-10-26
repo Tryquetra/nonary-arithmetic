@@ -1,0 +1,10 @@
+name = "papers-robsoncassiano"
+compatibility_date = "2026-10-25"
+
+[assets]
+directory = "./dist"
+not_found_handling = "404-page"
+
+[[routes]]
+pattern = "papers.robsoncassiano.software"
+custom_domain = true

@@ -6,8 +6,8 @@
 
 ## Article
 
-- [Decimal-Ternary and Ternary-Binary Conversion with the p to p±1 Translation Algorithm](https://tryquetra.github.io/nonary-arithmetic/): full paper, 10 sections, 7 tables, Python reference implementation in Appendix A. Author: Robson Cassiano. Published 2025-11-09, revised 2026-10-25.
-- [Markdown version](https://tryquetra.github.io/nonary-arithmetic/paper.md): plain-text rendering of the same paper.
+- [Decimal-Ternary and Ternary-Binary Conversion with the p to p±1 Translation Algorithm](https://papers.robsoncassiano.software/nonary-ternary-bridge-conversion/): full paper, 10 sections, 7 tables, Python reference implementation in Appendix A. Author: Robson Cassiano. Published 2025-11-09, revised 2026-10-25.
+- [Markdown version](https://papers.robsoncassiano.software/nonary-ternary-bridge-conversion/paper.md): plain-text rendering of the same paper.
 
 ## Reproducibility
 

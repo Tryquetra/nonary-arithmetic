@@ -12,7 +12,7 @@ keywords:
   - adjacent-base translation
   - Setun
   - ternary computing
-canonical: https://tryquetra.github.io/nonary-arithmetic/
+canonical: https://papers.robsoncassiano.software/nonary-ternary-bridge-conversion/
 ---
 
 # Decimal-Ternary and Ternary-Binary Conversion with the $p \to p \pm 1$ Translation Algorithm: Nonary and Octal Bridges as Optional Reductions

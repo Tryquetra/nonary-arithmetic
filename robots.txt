@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://tryquetra.github.io/nonary-arithmetic/sitemap.xml
+Sitemap: https://papers.robsoncassiano.software/nonary-ternary-bridge-conversion/sitemap.xml

@@ -1,0 +1,20 @@
+# Serve the Markdown version with its real media type, and cache immutable
+# assets for a year while keeping HTML revalidated.
+
+/nonary-ternary-bridge-conversion/paper.md
+  Content-Type: text/markdown; charset=utf-8
+  Cache-Control: public, max-age=300
+
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=300
+
+/og-nonary-bridges.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/nonary-ternary-bridge-conversion/og-nonary-bridges.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
